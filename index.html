@@ -3,12 +3,143 @@
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>Page Title</title>
+    <title>Мой сайт :)</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-    <script src='main.js'></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
+    <center>
+        <header class="header" onclick=main()>
+            <h1>Мой сайт</h1>
+        </header>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+
+        
+            <a href="video.html" class="nav-btn">Видео</a>
+            <a href="games/EvelGame/game.html" class="nav-btn">Игры</a>
+            <a href="about.html" class="nav-btn">Обо мне</a>
+            <div class="di">
+        <p>Какова моя будущая проффесия?..</p>
+        <p class="tj">&emsp;Этим вопросом задаются многие, но все быстро становится ясно, когда посмотришь на то, что лучше всего у тебя получается! </p>
+        <p class="tj">&emsp;Но что же это..? Хммм..</p>
+        <p class="tj">&emsp;Я вроде могу написать музыку.. послушаем?</p>
     
+
+        <div class="audio-player" data-src="mp3/mega.mp3">
+            <button class="playBtn">▶️</button>
+            <input type="range" class="seekBar" min="0" max="100" value="0">
+            <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
+        </div>
+        <br>
+        <div class="audio-player" data-src="mp3/spoonge.mp3">
+            <button class="playBtn">▶️</button>
+            <input type="range" class="seekBar" min="0" max="100" value="0">
+            <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
+        </div>
+        <br>
+        <div class="audio-player" data-src="mp3/king.mp3">
+            <button class="playBtn">▶️</button>
+            <input type="range" class="seekBar" min="0" max="100" value="0">
+            <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
+        </div>
+        <script src="player.js"></script>
+
+        <p class="tj">&emsp;Э-э-эм.. Такое.. Думаю я не музыкант.</p>
+        <p class="tj">&emsp;О! Точно! У меня же есть графичкский планшет! Может я художник?</p>
+
+
+        <!-- Мини-картинки -->
+        
+        <img src="img/fantasy.png" alt="" class="preview" width="40%" style="cursor:pointer;">
+        <img src="img/red.png" alt="" class="preview" width="40%" style="cursor:pointer;">
+        
+
+
+        <!-- Модальное окно -->
+        <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background: rgba(0,0,0,0.8); justify-content:center; align-items:center; position:fixed;">
+            <span id="close" style="position:absolute; top:20px; right:40px; font-size:40px; color:white; cursor:pointer;">&times;</span>
+            <button id="prev" style="position:absolute; left:20px; top:50%; font-size:50px; color:white; background:none; border:none; cursor:pointer;">&#10094;</button>
+            <img id="modalImg" src="" style="max-width:90%; max-height:90%;">
+            <button id="next" style="position:absolute; right:20px; top:50%; font-size:50px; color:white; background:none; border:none; cursor:pointer;">&#10095;</button>
+        </div>
+
+
+        
+        
+
+        <p class="tj">&emsp;Кстати, мне нравится, но я не уверен что это моя будущая проффесия. Не сильно то я этим и горю...</p>
+        <p class="tj">&emsp;Посмотрим дальше в сторону медиа пространства. Может быть я хороший фотограф?</p>
+        
+
+        <img src="img/img1.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
+        <img src="img/img2.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
+        <img src="img/img3.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
+
+
+        <p class="tj">&emsp;Мне нравится! Как минимум буду развиваться в этом направлении! Но давайте посмотрим дальше. Может быть из меня получится хороший 3d-моделер?</p>
+
+
+        
+        <script>
+                    const previews = document.querySelectorAll('.preview');
+                    const modal = document.getElementById('modal');
+                    const modalImg = document.getElementById('modalImg');
+                    const close = document.getElementById('close');
+                    const next = document.getElementById('next');
+                    const prev = document.getElementById('prev');
+
+                    let currentIndex = 0;
+
+                    const updateModal = (index) => {
+                        modalImg.src = previews[index].src;
+                        currentIndex = index;
+                    };
+
+                    // Открытие модального окна
+                    previews.forEach((img, index) => {
+                        img.onclick = () => {
+                            modal.style.display = 'flex';
+                            updateModal(index);
+                        };
+                    });
+
+                    // Закрытие
+                    close.onclick = () => modal.style.display = 'none';
+                    modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+
+                    // Навигация
+                    next.onclick = (e) => {
+                        e.stopPropagation();
+                        let newIndex = (currentIndex + 1) % previews.length;
+                        updateModal(newIndex);
+                    };
+
+                    prev.onclick = (e) => {
+                        e.stopPropagation();
+                        let newIndex = (currentIndex - 1 + previews.length) % previews.length;
+                        updateModal(newIndex);
+                    };
+        </script>
+    </div>
+
+        <model-viewer src="girl.glb" 
+              alt="3D модель девочки" 
+              auto-rotate 
+              camera-controls 
+              background-color="#ffffff"
+              style="width: 600px; height: 600px;">
+        </model-viewer>
+
+
+
+    </center>
 </body>
 </html>

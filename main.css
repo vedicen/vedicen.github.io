@@ -1,0 +1,58 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #ddd;
+    padding: 20px;
+    text-align: center;
+
+}
+
+.nav-btn {
+    width: 20%;
+    display: inline-block;
+    padding: 10px 20px;
+    background: #2d89ef;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.nav-btn:hover {
+    background: #1c65b8;
+}
+
+.tj {
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.audio-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f0f0f0;
+    padding: 10px;
+    border-radius: 10px;
+    width: 400px;
+}
+
+button {
+    border: none;
+    background: #6200ea;
+    color: rgb(255, 0, 0);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+input[type="range"] {
+    cursor: poiter;
+}
+
+.di {
+    width: 80%;
+}

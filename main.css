@@ -26,6 +26,7 @@
 }
 
 .tj {
+    transition: 0.2s;
     text-align: justify;
     text-justify: inter-word;
 }
@@ -55,4 +56,8 @@ input[type="range"] {
 
 .di {
     width: 80%;
+}
+
+body {
+    transition: background-color 0.3s linear;
 }

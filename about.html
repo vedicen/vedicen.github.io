@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Это мое!</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body id="body">
+    <center>
+        <header class="header" onclick=main()>
+            <h1>Мой сайт</h1>
+        </header>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <div id="di">
+            <p class="tj">&emsp; Для тех кто не понял меня зовут Кузьмин Дмитрий Вячеславович. И да. Этот сайт делал я.</p>
+            <p class="tj">&emsp; Ну что еще обо мне можно сказать?</p>
+            <p class="tj">&emsp; Родился - 24 Декабря 2007 года.</p>
+            <p id="timer" style='text-align: justify; text-justify: inter-word;'>  </p>
+            <p class="tj">&emsp; Подписываемся на мои соц.сети!</p> <br>
+            
+
+            <script>
+            // Поставь свою дату здесь
+            const startDate = new Date("2007-12-24T12:00:00");
+
+            function updateTimer() {
+                const now = new Date();
+                let diff = now - startDate;
+
+                if (diff < 0) diff = 0; // на случай ошибки
+
+                // Пересчёт в единицы
+                const sec = Math.floor(diff / 1000);
+                const min = Math.floor(sec / 60);
+                const hour = Math.floor(min / 60);
+                const day = Math.floor(hour / 24);
+
+                // Грубый пересчёт месяцев/лет (календарная точность требует сложнее)
+                const years = Math.floor(day / 365);
+                const months = Math.floor((day % 365) / 30);
+                const days = (day % 365) % 30;
+
+                const hours = hour % 24;
+                const minutes = min % 60;
+                const seconds = sec % 60;
+
+                document.getElementById("timer").textContent = 
+                    `\u2003 Тоесть мне сейчас примерно... ${years} лет, ${months} месяцев, ${days} дней, ` +
+                    `${hours} часов, ${minutes} минут, ${seconds} секунд.`;
+            }
+
+            setInterval(updateTimer, 1000);
+            updateTimer();
+            </script>
+
+            
+            <a href="https://vk.com/vedicen" >vk - @vedicen</a><br>
+            <a href="https://www.youtube.com/@vedicen">youtube - @vedicen</a><br>
+            <a href="https://www.youtube.com/@%D0%92%D0%B5%D0%B4%D0%B8%D1%87%D0%B5%D0%BD-%D0%9C%D0%B0%D0%B9%D0%BD%D0%BA%D1%80%D0%B0%D1%84%D1%82-%D1%855%D0%BD">youtube (майнкрафт)</a> <br><br>
+            <img src="self.JPG" alt="" width="80%">
+        </div>     
+
+
+    <script src="player.js"></script>
+    </center>
+</body>
+</html>

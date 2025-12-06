@@ -8,7 +8,7 @@
     <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
-<body>
+<body id="body">
     <center>
         <header class="header" onclick=main()>
             <h1>Мой сайт</h1>
@@ -23,28 +23,28 @@
 
         
             <a href="video.html" class="nav-btn">Видео</a>
-            <a href="games/EvelGame/game.html" class="nav-btn">Игры</a>
+            <a href="https://www.youtube.com/@vedicen" class="nav-btn playe">Канал</a>
             <a href="about.html" class="nav-btn">Обо мне</a>
             <div class="di">
-        <p>Какова моя будущая проффесия?..</p>
+        <p class="tj">&emsp;Какова моя будущая проффесия?..</p>
         <p class="tj">&emsp;Этим вопросом задаются многие, но все быстро становится ясно, когда посмотришь на то, что лучше всего у тебя получается! </p>
         <p class="tj">&emsp;Но что же это..? Хммм..</p>
         <p class="tj">&emsp;Я вроде могу написать музыку.. послушаем?</p>
     
 
-        <div class="audio-player" data-src="mp3/mega.mp3">
+        <div class="audio-player" data-src="mega.mp3">
             <button class="playBtn">▶️</button>
             <input type="range" class="seekBar" min="0" max="100" value="0">
             <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
         </div>
         <br>
-        <div class="audio-player" data-src="mp3/spoonge.mp3">
+        <div class="audio-player" data-src="spoonge.mp3">
             <button class="playBtn">▶️</button>
             <input type="range" class="seekBar" min="0" max="100" value="0">
             <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
         </div>
         <br>
-        <div class="audio-player" data-src="mp3/king.mp3">
+        <div class="audio-player" data-src="king.mp3">
             <button class="playBtn">▶️</button>
             <input type="range" class="seekBar" min="0" max="100" value="0">
             <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
@@ -57,8 +57,8 @@
 
         <!-- Мини-картинки -->
         
-        <img src="img/fantasy.png" alt="" class="preview" width="40%" style="cursor:pointer;">
-        <img src="img/red.png" alt="" class="preview" width="40%" style="cursor:pointer;">
+        <img src="fantasy.png" alt="" class="preview" width="40%" style="cursor:pointer;">
+        <img src="red.png" alt="" class="preview" width="40%" style="cursor:pointer;">
         
 
 
@@ -79,13 +79,14 @@
         <p class="tj">&emsp;Посмотрим дальше в сторону медиа пространства. Может быть я хороший фотограф?</p>
         
 
-        <img src="img/img1.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
-        <img src="img/img2.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
-        <img src="img/img3.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
+        <img src="img1.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
+        <img src="img2.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
+        <img src="img3.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
 
 
-        <p class="tj">&emsp;Мне нравится! Как минимум буду развиваться в этом направлении! Но давайте посмотрим дальше. Может быть из меня получится хороший 3d-моделер?</p>
+        <p class="tj">&emsp;Мне нравится! Как минимум буду развиваться в этом направлении! Но давайте посмотрим дальше. Может быть из меня получится хороший 3d-специиалист?</p>
 
+        
 
         
         <script>
@@ -128,15 +129,60 @@
                         updateModal(newIndex);
                     };
         </script>
-    </div>
 
-        <model-viewer src="girl.glb" 
+        <script>
+    // применить белый цвет ко всем элементам .tj
+        function applycolor(colo) {
+            const tex = document.getElementsByClassName('tj');
+            for (let i = 0; i < tex.length; i++) {
+                tex[i].style.color = colo;
+            }
+        }
+
+    // применяем сразу при загрузке и при скролле (если нужно)
+    
+        window.addEventListener('scroll', () => {
+        const body = document.getElementById('body');
+
+        
+
+        if (window.scrollY > 850 && window.scrollY < 1500) {
+            body.style.background = "#222";
+            applycolor('#ffffff');    // темный
+        } else {
+            body.style.background = "#ffffff";
+            applycolor('#000'); // светлый
+        }
+    });
+</script>
+    <model-viewer src="girl.glb" 
               alt="3D модель девочки" 
               auto-rotate 
               camera-controls 
               background-color="#ffffff"
               style="width: 600px; height: 600px;">
         </model-viewer>
+
+        <p class="tj">&emsp;Руки на стол! Хотя мне кажется я себя переоцеил... Хмм.. Может программирую неплохо? Ну да - сайт ведь как-то работает.. Я думаю я способен на большее... - Создать игру! И да, вы спокойно можете в них поиграть скачав по ссылкам ниже.</p><br>
+        <a href="https://drive.google.com/uc?export=download&id=1sazT2-PBdkwRcWx5OuMSrbCncX-kYbP9">Игра про тень (тоже самое сверху) - игра реализована</a><br>
+        <a href="https://drive.google.com/file/d/1hEAGV3FdBAtAb17lhju2xE9QKj0cuq-R/view?usp=sharing">Пробный проект на юнити - свёрнут</a><br>
+        <a href="https://drive.google.com/file/d/1PTR0lpN9qCt6ugcXc0KhtnSjPk9lfGGI/view?usp=sharing">3d игра на годот - пересматривается</a><br>
+        <p class="tj">&emsp;Кстати, в последней ссылке игра с реализованным мультиплеером, но пока она не доделана и я молюсь за ее судьбу... Все в моих руках!</p><br>
+        
+        <p class="tj">&emsp; Вроде все... А точно мне еще нравилось видео снимать какое-то время. Опыт есть это моя возможная проффесия. Можешь глянуть во вкладке <a href="video.html">'Видео'</a> </p>
+        <p class="tj">&emsp; По итогу наверное программистом стану. По крайней мере на него учиться пойду. Попутно буду развивать свои хобби, изучать что-то новое. Надеюсь тебя вдохновил чем-то! Удачи!</p>
+        
+        
+        
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+
+    </div>
+
+        
 
 
 

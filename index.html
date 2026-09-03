@@ -1,191 +1,1033 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>Мой сайт :)</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Карта мест</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{
+    --ink:#e8e6df;
+    --dim:#8c9088;
+    --panel:#12140f;
+    --panel-edge:#2a2d24;
+    --accent:#c7d94c;
+    --accent-dim:#7c8a2e;
+    --danger:#d9704c;
+    --blue:#4c9fd9;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;width:100%;
+    font-family:'Segoe UI',ui-sans-serif,system-ui,sans-serif;
+    background:#000;
+    overflow:hidden;
+  }
+  #map{
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    background:#000;
+  }
+  .leaflet-control-attribution{
+    background:rgba(0,0,0,0.55)!important;
+    color:var(--dim)!important;
+    font-size:10px!important;
+  }
+  .leaflet-control-attribution a{color:var(--dim)!important;}
+  .leaflet-control-zoom{
+    border:none!important;
+    margin:16px!important;
+    margin-left:356px!important;
+  }
+  .leaflet-control-zoom a{
+    background:rgba(18,20,15,0.85)!important;
+    color:var(--ink)!important;
+    border:1px solid var(--panel-edge)!important;
+    width:36px!important;height:36px!important;line-height:36px!important;
+    backdrop-filter: blur(4px);
+  }
+  .leaflet-control-zoom a:first-child{border-radius:4px 4px 0 0!important;}
+  .leaflet-control-zoom a:last-child{border-radius:0 0 4px 4px!important;}
+
+  .pin{
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 0 4px rgba(199,217,76,0.22), 0 0 14px rgba(199,217,76,0.5);
+    border:2px solid #0d0f0a;
+    cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .pin:hover{transform:scale(1.25);}
+  .pin.active{
+    background:var(--danger);
+    box-shadow:0 0 0 4px rgba(217,112,76,0.25), 0 0 16px rgba(217,112,76,0.6);
+  }
+  .me-dot{
+    width:14px;height:14px;border-radius:50%;
+    background:var(--blue);
+    border:2px solid #eef6ff;
+    box-shadow:0 0 0 6px rgba(76,159,217,0.25);
+  }
+
+  /* ---------- левая навигационная панель ---------- */
+  #filters{
+    position:absolute;
+    top:0;left:0;bottom:0;
+    z-index:900;
+    width:340px;
+    background:var(--panel);
+    border-right:1px solid var(--panel-edge);
+    color:var(--ink);
+    padding:28px 24px 24px;
+    font-size:16px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+
+  #filters h3{
+    display:block;
+    margin:0 0 28px;
+    padding:0 0 20px;
+    border-bottom:1px solid var(--panel-edge);
+    font-size:20px;
+    font-weight:700;
+    color:var(--ink);
+  }
+
+  .filter-section{
+    margin-bottom:26px;
+  }
+
+  .filter-section-title{
+    margin:0 0 14px;
+    color:var(--dim);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+  }
+
+  .f-row{margin-bottom:22px;}
+  .f-row:last-child{margin-bottom:0;}
+
+  .f-label{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:11px;
+    color:var(--ink);
+    font-size:15px;
+  }
+
+  .f-label span.val{
+    color:var(--accent);
+    font-weight:700;
+  }
+
+  #rating-range{
+    width:100%;
+    height:6px;
+    accent-color:var(--accent);
+  }
+
+  .f-check{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 0;
+    cursor:pointer;
+    user-select:none;
+    font-size:15px;
+    border-bottom:1px solid rgba(255,255,255,.045);
+  }
+
+  .f-check:last-child{border-bottom:none;}
+
+  .f-check input{
+    width:19px;
+    height:19px;
+    accent-color:var(--accent);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  #count-line{
+    margin-top:4px;
+    padding:15px 0;
+    border-top:1px solid var(--panel-edge);
+    color:var(--dim);
+    font-size:13px;
+  }
+
+  /* Кнопки действий находятся в том же сплошном левом меню */
+  .sidebar-actions{
+    margin-top:auto;
+    padding-top:20px;
+    border-top:1px solid var(--panel-edge);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .sidebar-action{
+    width:100%;
+    border:1px solid var(--panel-edge);
+    background:rgba(255,255,255,.025);
+    color:var(--ink);
+    padding:13px 14px;
+    border-radius:7px;
+    font-size:14px;
+    text-align:left;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+
+  .sidebar-action:hover{
+    border-color:var(--accent);
+    color:var(--accent);
+    background:rgba(199,217,76,.06);
+  }
+
+  .sidebar-action.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#12140f;
+    font-weight:700;
+  }
+
+  .sidebar-action.primary:hover{
+    background:#d6e662;
+    color:#12140f;
+  }
+
+  #sidebar-account{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 2px 16px;
+  }
+
+  #sidebar-avatar{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:var(--accent-dim);
+    color:#0d0f0a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  #sidebar-account-label{
+    font-size:14px;
+    color:var(--ink);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* ---------- боковая панель: сплошная, во весь экран, крупнее ---------- */
+  #panel{
+    position:absolute;
+    top:0;right:0;
+    height:100%;
+    width:560px;
+    max-width:94vw;
+    background:var(--panel);
+    border-left:1px solid var(--panel-edge);
+    color:var(--ink);
+    transform:translateX(100%);
+    transition:transform .32s cubic-bezier(.2,.8,.2,1);
+    z-index:1000;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  #panel.open{transform:translateX(0);}
+
+  #panel-close{
+    position:absolute;
+    top:18px;right:18px;
+    width:40px;height:40px;
+    border:1px solid var(--panel-edge);
+    background:rgba(0,0,0,0.35);
+    color:var(--ink);
+    border-radius:50%;
+    font-size:19px;
+    cursor:pointer;
+    z-index:3;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #panel-close:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* --- фейковый аккаунт-бар в шапке панели --- */
+  #account-bar{
+    position:absolute;
+    top:18px;left:18px;
+    z-index:3;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:rgba(0,0,0,0.4);
+    border:1px solid var(--panel-edge);
+    border-radius:24px;
+    padding:6px 16px 6px 6px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+  }
+  #account-avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--accent-dim);
+    color:#0d0f0a;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;
+    flex-shrink:0;
+  }
+  #account-label{
+    font-size:13.5px;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+
+  #shot-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    background:#0a0b08;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  #shot-wrap img{
+    width:100%;height:100%;object-fit:cover;
+    display:block;
+  }
+  #shot-dots{
+    position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+    display:flex;gap:7px;
+  }
+  #shot-dots span{
+    width:7px;height:7px;border-radius:50%;
+    background:rgba(255,255,255,0.35);
+    cursor:pointer;
+  }
+  #shot-dots span.on{background:var(--accent);}
+
+  #panel-body{
+    padding:28px 34px 40px;
+    overflow-y:auto;
+    flex:1;
+  }
+  #place-name{
+    font-size:30px;
+    font-weight:700;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  #place-loc{
+    font-size:15px;
+    color:var(--dim);
+    margin:0 0 22px;
+  }
+  #rating-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  #rating-num{
+    font-size:40px;
+    font-weight:700;
+    color:var(--accent);
+  }
+  #rating-of{color:var(--dim);font-size:15px;}
+
+  /* --- фейковая пользовательская оценка --- */
+  #user-rate-block{
+    margin-bottom:22px;
+    padding-bottom:22px;
+    border-bottom:1px solid var(--panel-edge);
+  }
+  #user-rate-label{
+    font-size:13px;
+    color:var(--dim);
+    margin-bottom:8px;
+  }
+  #user-stars{
+    display:flex;
+    gap:6px;
+  }
+  .u-star{
+    font-size:26px;
+    line-height:1;
+    color:#3a3d33;
+    cursor:pointer;
+    transition:transform .12s ease, color .12s ease;
+    user-select:none;
+  }
+  .u-star:hover{transform:scale(1.15);}
+  .u-star.on{color:var(--accent);}
+  #user-rate-note{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--dim);
+  }
+
+  .trait-list{list-style:none;margin:0;padding:0;}
+  .trait{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    font-size:16px;
+    position:relative;
+  }
+  .trait:last-child{border-bottom:none;}
+  .trait-icon{
+    width:26px;height:26px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--dim);
+  }
+  .trait.yes .trait-icon{color:var(--accent);}
+  .trait.no .trait-icon{color:#5c5f56;}
+  .trait-label{flex:1;display:flex;align-items:center;gap:6px;}
+  .trait-val{font-size:13.5px;color:var(--dim);}
+  .trait.yes .trait-val{color:var(--accent);}
+
+  .star-btn{
+    background:none;border:none;
+    color:var(--accent);
+    font-size:17px;
+    cursor:pointer;
+    padding:0 2px;
+    line-height:1;
+  }
+  .star-popup{
+    position:absolute;
+    left:0;
+    top:calc(100% + 4px);
+    background:#1c1f16;
+    border:1px solid var(--panel-edge);
+    color:var(--ink);
+    padding:8px 13px;
+    border-radius:8px;
+    font-size:13px;
+    white-space:nowrap;
+    z-index:5;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  }
+
+  #desc{
+    margin-top:24px;
+    font-size:15.5px;
+    line-height:1.7;
+    color:#c3c6bc;
+  }
+
+  #locate-btn{
+    position:absolute;
+    bottom:20px;left:356px;
+    z-index:900;
+    background:rgba(18,20,15,0.85);
+    border:1px solid var(--panel-edge);
+    color:var(--ink);
+    padding:9px 14px;
+    border-radius:20px;
+    font-size:12.5px;
+    cursor:pointer;
+    display:flex;align-items:center;gap:7px;
+    backdrop-filter:blur(4px);
+  }
+  #locate-btn:hover{border-color:var(--accent);color:var(--accent);}
+  #locate-btn .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);}
+
+  /* ---------- фейковая модалка входа/регистрации ---------- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:2000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .modal-overlay.open{display:flex;}
+
+  .generic-modal{
+    position:relative;
+    width:390px;
+    max-width:88vw;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:12px;
+    padding:28px;
+    color:var(--ink);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+
+  .generic-modal h2{
+    margin:4px 0 8px;
+    font-size:24px;
+  }
+
+  .generic-modal p{
+    margin:0 0 20px;
+    color:var(--dim);
+    font-size:13px;
+    line-height:1.5;
+  }
+
+  .generic-modal-kicker{
+    color:var(--accent);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+  }
+
+  .generic-modal-close{
+    position:absolute;
+    top:13px;
+    right:15px;
+    background:none;
+    border:none;
+    color:var(--dim);
+    font-size:18px;
+    cursor:pointer;
+  }
+
+  .generic-modal-close:hover{color:var(--accent);}
+
+  #place-desc-input{
+    min-height:90px;
+    resize:vertical;
+    font-family:inherit;
+  }
+
+  #auth-overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:2000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+  }
+  #auth-overlay.open{display:flex;}
+  #auth-modal{
+    width:340px;
+    max-width:88vw;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:14px;
+    padding:26px 26px 24px;
+    color:var(--ink);
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  #auth-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:20px;
+    background:rgba(255,255,255,0.04);
+    border-radius:9px;
+    padding:4px;
+  }
+  .auth-tab{
+    flex:1;
+    text-align:center;
+    padding:8px 0;
+    font-size:13px;
+    border-radius:7px;
+    cursor:pointer;
+    color:var(--dim);
+  }
+  .auth-tab.active{
+    background:var(--accent);
+    color:#12140f;
+    font-weight:600;
+  }
+  .auth-field{
+    display:block;
+    width:100%;
+    margin-bottom:12px;
+    padding:11px 13px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--panel-edge);
+    border-radius:8px;
+    color:var(--ink);
+    font-size:14px;
+  }
+  .auth-field::placeholder{color:#6b6e64;}
+  #auth-name-row{display:none;}
+  #auth-submit{
+    width:100%;
+    padding:12px 0;
+    margin-top:6px;
+    border:none;
+    border-radius:8px;
+    background:var(--accent);
+    color:#12140f;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  #auth-submit:hover{background:#d6e662;}
+  #auth-close{
+    position:absolute;
+    top:14px;right:16px;
+    background:none;border:none;
+    color:var(--dim);
+    font-size:18px;
+    cursor:pointer;
+  }
+  #auth-modal{position:relative;}
+  #auth-hint{
+    margin-top:14px;
+    font-size:11.5px;
+    color:var(--dim);
+    text-align:center;
+  }
+
+  @media (max-width:700px){
+    #filters{
+      width:280px;
+      padding:22px 18px 18px;
+    }
+
+    .leaflet-control-zoom{
+      margin-left:296px!important;
+    }
+
+    #locate-btn{
+      left:296px;
+    }
+
+    #panel{width:100vw;max-width:100vw;}
+    #panel-body{padding:24px 20px 36px;}
+  }
+
+  @media (max-width:480px){
+    #filters{width:250px;}
+
+    .leaflet-control-zoom{
+      margin-left:266px!important;
+    }
+
+    #locate-btn{
+      left:266px;
+    }
+  }
+</style>
 </head>
-<body id="body">
-    <center>
-        <header class="header" onclick=main()>
-            <h1>Мой сайт</h1>
-        </header>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
+<body>
 
-        
-            <a href="video.html" class="nav-btn">Видео</a>
-            <a href="https://www.youtube.com/@vedicen" class="nav-btn playe">Канал</a>
-            <a href="about.html" class="nav-btn">Обо мне</a>
-            <div class="di">
-        <p class="tj">&emsp;Какова моя будущая проффесия?..</p>
-        <p class="tj">&emsp;Этим вопросом задаются многие, но все быстро становится ясно, когда посмотришь на то, что лучше всего у тебя получается! </p>
-        <p class="tj">&emsp;Но что же это..? Хммм..</p>
-        <p class="tj">&emsp;Я вроде могу написать музыку.. послушаем?</p>
-    
+<div id="map"></div>
 
-        <div class="audio-player" data-src="mega.mp3">
-            <button class="playBtn">▶️</button>
-            <input type="range" class="seekBar" min="0" max="100" value="0">
-            <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
-        </div>
-        <br>
-        <div class="audio-player" data-src="spoonge.mp3">
-            <button class="playBtn">▶️</button>
-            <input type="range" class="seekBar" min="0" max="100" value="0">
-            <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
-        </div>
-        <br>
-        <div class="audio-player" data-src="king.mp3">
-            <button class="playBtn">▶️</button>
-            <input type="range" class="seekBar" min="0" max="100" value="0">
-            <input type="range" class="volumeControl" min="0" max="1" step="0.01" value="1">
-        </div>
-        <script src="player.js"></script>
+<div id="filters">
+  <h3>Фильтры</h3>
 
-        <p class="tj">&emsp;Э-э-эм.. Такое.. Думаю я не музыкант.</p>
-        <p class="tj">&emsp;О! Точно! У меня же есть графичкский планшет! Может я художник?</p>
+  <div class="filter-section">
+    <div class="filter-section-title">Рейтинг</div>
+    <div class="f-row">
+      <div class="f-label">
+        <span>Минимальная оценка</span>
+        <span class="val" id="rating-val">0</span>
+      </div>
+      <input type="range" id="rating-range" min="0" max="5" step="0.1" value="0">
+    </div>
+  </div>
 
+  <div class="filter-section">
+    <div class="filter-section-title">Удобства</div>
+    <div class="f-row">
+      <label class="f-check"><input type="checkbox" id="f-dog"> Можно с собакой</label>
+      <label class="f-check"><input type="checkbox" id="f-wifi"> Есть Wi-Fi</label>
+      <label class="f-check"><input type="checkbox" id="f-work"> Есть рабочая зона</label>
+    </div>
+  </div>
 
-        <!-- Мини-картинки -->
-        
-        <img src="fantasy.png" alt="" class="preview" width="40%" style="cursor:pointer;">
-        <img src="red.png" alt="" class="preview" width="40%" style="cursor:pointer;">
-        
+  <div id="count-line">Показано мест: <span id="count-num">0</span></div>
 
-
-        <!-- Модальное окно -->
-        <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-            background: rgba(0,0,0,0.8); justify-content:center; align-items:center; position:fixed;">
-            <span id="close" style="position:absolute; top:20px; right:40px; font-size:40px; color:white; cursor:pointer;">&times;</span>
-            <button id="prev" style="position:absolute; left:20px; top:50%; font-size:50px; color:white; background:none; border:none; cursor:pointer;">&#10094;</button>
-            <img id="modalImg" src="" style="max-width:90%; max-height:90%;">
-            <button id="next" style="position:absolute; right:20px; top:50%; font-size:50px; color:white; background:none; border:none; cursor:pointer;">&#10095;</button>
-        </div>
-
-
-        
-        
-
-        <p class="tj">&emsp;Кстати, мне нравится, но я не уверен что это моя будущая проффесия. Не сильно то я этим и горю...</p>
-        <p class="tj">&emsp;Посмотрим дальше в сторону медиа пространства. Может быть я хороший фотограф?</p>
-        
-
-        <img src="img1.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
-        <img src="img2.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
-        <img src="img3.JPG" alt="" class="preview" width="26.6%" style="cursor:pointer;">
-
-
-        <p class="tj">&emsp;Мне нравится! Как минимум буду развиваться в этом направлении! Но давайте посмотрим дальше. Может быть из меня получится хороший 3d-специиалист?</p>
-
-        
-
-        
-        <script>
-                    const previews = document.querySelectorAll('.preview');
-                    const modal = document.getElementById('modal');
-                    const modalImg = document.getElementById('modalImg');
-                    const close = document.getElementById('close');
-                    const next = document.getElementById('next');
-                    const prev = document.getElementById('prev');
-
-                    let currentIndex = 0;
-
-                    const updateModal = (index) => {
-                        modalImg.src = previews[index].src;
-                        currentIndex = index;
-                    };
-
-                    // Открытие модального окна
-                    previews.forEach((img, index) => {
-                        img.onclick = () => {
-                            modal.style.display = 'flex';
-                            updateModal(index);
-                        };
-                    });
-
-                    // Закрытие
-                    close.onclick = () => modal.style.display = 'none';
-                    modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
-
-                    // Навигация
-                    next.onclick = (e) => {
-                        e.stopPropagation();
-                        let newIndex = (currentIndex + 1) % previews.length;
-                        updateModal(newIndex);
-                    };
-
-                    prev.onclick = (e) => {
-                        e.stopPropagation();
-                        let newIndex = (currentIndex - 1 + previews.length) % previews.length;
-                        updateModal(newIndex);
-                    };
-        </script>
-
-        <script>
-    // применить белый цвет ко всем элементам .tj
-        function applycolor(colo) {
-            const tex = document.getElementsByClassName('tj');
-            for (let i = 0; i < tex.length; i++) {
-                tex[i].style.color = colo;
-            }
-        }
-
-    // применяем сразу при загрузке и при скролле (если нужно)
-    
-        window.addEventListener('scroll', () => {
-        const body = document.getElementById('body');
-
-        
-
-        if (window.scrollY > 850 && window.scrollY < 1500) {
-            body.style.background = "#222";
-            applycolor('#ffffff');    // темный
-        } else {
-            body.style.background = "#ffffff";
-            applycolor('#000'); // светлый
-        }
-    });
-</script>
-    <model-viewer src="girl.glb" 
-              alt="3D модель девочки" 
-              auto-rotate 
-              camera-controls 
-              background-color="#ffffff"
-              style="width: 600px; height: 600px;">
-        </model-viewer>
-
-        <p class="tj">&emsp;Руки на стол! Хотя мне кажется я себя переоцеил... Хмм.. Может программирую неплохо? Ну да - сайт ведь как-то работает.. Я думаю я способен на большее... - Создать игру! И да, вы спокойно можете в них поиграть скачав по ссылкам ниже.</p><br>
-        <a href="https://drive.google.com/uc?export=download&id=1sazT2-PBdkwRcWx5OuMSrbCncX-kYbP9">Игра про тень (тоже самое сверху) - игра реализована</a><br>
-        <a href="https://drive.google.com/file/d/1hEAGV3FdBAtAb17lhju2xE9QKj0cuq-R/view?usp=sharing">Пробный проект на юнити - свёрнут</a><br>
-        <a href="https://drive.google.com/file/d/1PTR0lpN9qCt6ugcXc0KhtnSjPk9lfGGI/view?usp=sharing">3d игра на годот - пересматривается</a><br>
-        <p class="tj">&emsp;Кстати, в последней ссылке игра с реализованным мультиплеером, но пока она не доделана и я молюсь за ее судьбу... Все в моих руках!</p><br>
-        
-        <p class="tj">&emsp; Вроде все... А точно мне еще нравилось видео снимать какое-то время. Опыт есть это моя возможная проффесия. Можешь глянуть во вкладке <a href="video.html">'Видео'</a> </p>
-        <p class="tj">&emsp; По итогу наверное программистом стану. По крайней мере на него учиться пойду. Попутно буду развивать свои хобби, изучать что-то новое. Надеюсь тебя вдохновил чем-то! Удачи!</p>
-        
-        
-        
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-
+  <div class="sidebar-actions">
+    <div id="sidebar-account">
+      <div id="sidebar-avatar">Г</div>
+      <div id="sidebar-account-label">Вы не вошли</div>
     </div>
 
-        
+    <button class="sidebar-action primary" id="add-place-btn">＋ Добавить своё место</button>
+    <button class="sidebar-action" id="login-btn">Войти в аккаунт</button>
+  </div>
+</div>
 
+<button id="locate-btn"><span class="dot"></span> Моё местоположение</button>
 
+<div id="panel">
+  <button id="panel-close">✕</button>
+  <div id="shot-wrap">
+    <img id="shot-img" src="" alt="">
+    <div id="shot-dots"></div>
+  </div>
+  <div id="panel-body">
+    <h2 id="place-name">—</h2>
+    <p id="place-loc">—</p>
+    <div id="rating-row">
+      <span id="rating-num">—</span><span id="rating-of">/ 5</span>
+    </div>
 
-    </center>
+    <div id="user-rate-block">
+      <div id="user-rate-label">Ваша оценка</div>
+      <div id="user-stars">
+        <span class="u-star" data-v="1">★</span>
+        <span class="u-star" data-v="2">★</span>
+        <span class="u-star" data-v="3">★</span>
+        <span class="u-star" data-v="4">★</span>
+        <span class="u-star" data-v="5">★</span>
+      </div>
+      <div id="user-rate-note">оценка видна только вам</div>
+    </div>
+
+    <ul class="trait-list" id="trait-list"></ul>
+    <p id="desc"></p>
+  </div>
+</div>
+
+<div id="add-place-overlay" class="modal-overlay">
+  <div id="add-place-modal" class="generic-modal">
+    <button class="generic-modal-close" id="add-place-close">✕</button>
+    <div class="generic-modal-kicker">НОВОЕ МЕСТО</div>
+    <h2>Добавить своё место</h2>
+    <p>Демонстрационная форма. Место появится на карте только в рамках текущей сессии.</p>
+    <input class="auth-field" id="place-title-input" type="text" placeholder="Название места">
+    <input class="auth-field" id="place-country-input" type="text" placeholder="Город / страна">
+    <textarea class="auth-field" id="place-desc-input" placeholder="Короткое описание"></textarea>
+    <button id="add-place-submit" class="sidebar-action primary">Добавить на карту</button>
+  </div>
+</div>
+
+<div id="auth-overlay">
+  <div id="auth-modal">
+    <button id="auth-close">✕</button>
+    <div id="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Вход</div>
+      <div class="auth-tab" data-tab="register">Регистрация</div>
+    </div>
+    <div id="auth-name-row">
+      <input class="auth-field" id="auth-name" type="text" placeholder="Имя">
+    </div>
+    <input class="auth-field" id="auth-email" type="email" placeholder="Email">
+    <input class="auth-field" id="auth-pass" type="password" placeholder="Пароль">
+    <button id="auth-submit">Войти</button>
+    <div id="auth-hint">это демонстрационная форма, данные никуда не отправляются</div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="locations.js"></script>
+<script>
+const map = L.map('map', {
+  center: [20, 0],
+  zoom: 3,
+  minZoom: 2,
+  maxZoom: 18,
+  zoomControl: true,
+  worldCopyJump: true,
+  tap: true
+});
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles © Esri',
+  maxZoom: 18
+}).addTo(map);
+// мультитач pinch-zoom работает из коробки на touch-устройствах
+
+let activeMarker = null;
+let activePlaceId = null;
+const markerObjs = {};
+const userRatings = {}; // id -> число звёзд, только визуально, в пределах сессии
+
+function makePinIcon(active){
+  return L.divIcon({
+    className: '',
+    html: `<div class="pin${active ? ' active' : ''}"></div>`,
+    iconSize: [16,16],
+    iconAnchor: [8,8]
+  });
+}
+
+LOCATIONS.forEach(place => {
+  const marker = L.marker([place.lat, place.lng], { icon: makePinIcon(false) }).addTo(map);
+  marker.on('click', () => openPlace(place, marker));
+  markerObjs[place.id] = { marker, place };
+});
+
+// ---------- фильтры ----------
+const ratingRange = document.getElementById('rating-range');
+const ratingVal = document.getElementById('rating-val');
+const fDog = document.getElementById('f-dog');
+const fWifi = document.getElementById('f-wifi');
+const fWork = document.getElementById('f-work');
+const countNum = document.getElementById('count-num');
+
+function applyFilters(){
+  const minRating = parseFloat(ratingRange.value);
+  ratingVal.textContent = minRating.toFixed(1);
+  const needDog = fDog.checked;
+  const needWifi = fWifi.checked;
+  const needWork = fWork.checked;
+
+  let shown = 0;
+  Object.values(markerObjs).forEach(({marker, place}) => {
+    const ok =
+      place.rating >= minRating &&
+      (!needDog || place.dogFriendly) &&
+      (!needWifi || place.wifi) &&
+      (!needWork || place.workspace);
+
+    if(ok){
+      if(!map.hasLayer(marker)) marker.addTo(map);
+      shown++;
+    } else {
+      if(map.hasLayer(marker)) map.removeLayer(marker);
+      if(activeMarker === marker) closePanel();
+    }
+  });
+  countNum.textContent = shown;
+}
+
+[ratingRange, fDog, fWifi, fWork].forEach(el => el.addEventListener('input', applyFilters));
+applyFilters();
+
+// ---------- боковая панель ----------
+const panel = document.getElementById('panel');
+const panelClose = document.getElementById('panel-close');
+const shotImg = document.getElementById('shot-img');
+const shotDots = document.getElementById('shot-dots');
+let currentShots = [];
+let currentShotIdx = 0;
+
+function renderShot(){
+  shotImg.src = currentShots[currentShotIdx];
+  [...shotDots.children].forEach((d,i) => d.classList.toggle('on', i===currentShotIdx));
+}
+
+const ICONS = {
+  dogYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14c0-3 2-5 4-5s3 1 3 3-1 3-3 3H6"/><path d="M20 10c0 6-4 10-8 10s-6-3-6-6"/><circle cx="17" cy="7" r="2"/></svg>',
+  dogNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>',
+  wifiYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg>',
+  wifiNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/><path d="M3 3l18 18"/></svg>',
+  workYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  workNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 3l18 18"/></svg>'
+};
+
+function traitRow(iconYes, iconNo, label, value, valText, withStar, outlet){
+  const star = withStar
+    ? `<button class="star-btn" data-outlet="${outlet}" title="Подробнее">★</button>`
+    : '';
+  return `<li class="trait ${value ? 'yes' : 'no'}">
+    <span class="trait-icon">${value ? iconYes : iconNo}</span>
+    <span class="trait-label">${label}${star}</span>
+    <span class="trait-val">${valText}</span>
+  </li>`;
+}
+
+// ---------- фейковая пользовательская оценка места ----------
+const userStars = [...document.querySelectorAll('.u-star')];
+const userRateNote = document.getElementById('user-rate-note');
+
+function renderUserStars(){
+  const val = userRatings[activePlaceId] || 0;
+  userStars.forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= val));
+  userRateNote.textContent = val
+    ? `вы поставили ${val} из 5 — оценка видна только вам`
+    : 'оценка видна только вам';
+}
+
+userStars.forEach(s => {
+  s.addEventListener('click', () => {
+    if(activePlaceId === null) return;
+    userRatings[activePlaceId] = parseInt(s.dataset.v);
+    renderUserStars();
+  });
+  s.addEventListener('mouseenter', () => {
+    const v = parseInt(s.dataset.v);
+    userStars.forEach(x => x.classList.toggle('on', parseInt(x.dataset.v) <= v));
+  });
+});
+document.getElementById('user-stars').addEventListener('mouseleave', renderUserStars);
+
+function openPlace(place, marker){
+  if(activeMarker) activeMarker.setIcon(makePinIcon(false));
+  marker.setIcon(makePinIcon(true));
+  activeMarker = marker;
+  activePlaceId = place.id;
+
+  document.getElementById('place-name').textContent = place.name;
+  document.getElementById('place-loc').textContent = place.country;
+  document.getElementById('rating-num').textContent = place.rating.toFixed(1);
+  document.getElementById('desc').textContent = place.desc;
+  renderUserStars();
+
+  document.getElementById('trait-list').innerHTML =
+    traitRow(ICONS.dogYes, ICONS.dogNo, 'Можно с собакой', place.dogFriendly, place.dogFriendly ? 'да' : 'нет', false) +
+    traitRow(ICONS.wifiYes, ICONS.wifiNo, 'Wi-Fi', place.wifi, place.wifi ? 'есть' : 'нет', false) +
+    traitRow(ICONS.workYes, ICONS.workNo, 'Рабочая зона', place.workspace, place.workspace ? 'есть' : 'нет', true, place.outlet);
+
+  const starBtn = document.querySelector('#trait-list .star-btn');
+  if(starBtn){
+    starBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const existing = document.querySelector('.star-popup');
+      if(existing){ existing.remove(); return; }
+      const outlet = starBtn.dataset.outlet === 'true';
+      const pop = document.createElement('div');
+      pop.className = 'star-popup';
+      pop.textContent = outlet ? 'присутствует розетка' : 'розетки нет';
+      starBtn.closest('.trait').appendChild(pop);
+      setTimeout(() => {
+        document.addEventListener('click', function onDoc(ev){
+          if(!pop.contains(ev.target) && ev.target !== starBtn){
+            pop.remove();
+            document.removeEventListener('click', onDoc);
+          }
+        });
+      }, 0);
+    });
+  }
+
+  currentShots = place.shots;
+  currentShotIdx = 0;
+  shotDots.innerHTML = currentShots.map(() => `<span></span>`).join('');
+  [...shotDots.children].forEach((d,i) => d.addEventListener('click', () => { currentShotIdx = i; renderShot(); }));
+  renderShot();
+
+  panel.classList.add('open');
+  map.panTo([place.lat, place.lng], { animate: true });
+}
+
+function closePanel(){
+  panel.classList.remove('open');
+  if(activeMarker){ activeMarker.setIcon(makePinIcon(false)); activeMarker = null; }
+  activePlaceId = null;
+}
+panelClose.addEventListener('click', closePanel);
+
+// ---------- фейковая регистрация / вход ----------
+const authOverlay = document.getElementById('auth-overlay');
+const accountBar = document.getElementById('sidebar-account');
+const accountAvatar = document.getElementById('sidebar-avatar');
+const accountLabel = document.getElementById('sidebar-account-label');
+const loginBtn = document.getElementById('login-btn');
+const addPlaceBtn = document.getElementById('add-place-btn');
+const authTabs = [...document.querySelectorAll('.auth-tab')];
+const authNameRow = document.getElementById('auth-name-row');
+const authSubmit = document.getElementById('auth-submit');
+const authEmail = document.getElementById('auth-email');
+const authName = document.getElementById('auth-name');
+let authMode = 'login';
+let loggedIn = false;
+
+function openAuth(){
+  if(loggedIn) return;
+  authOverlay.classList.add('open');
+}
+
+accountBar.addEventListener('click', openAuth);
+loginBtn.addEventListener('click', openAuth);
+const addPlaceOverlay = document.getElementById('add-place-overlay');
+const addPlaceClose = document.getElementById('add-place-close');
+const addPlaceSubmit = document.getElementById('add-place-submit');
+
+addPlaceBtn.addEventListener('click', () => {
+  addPlaceOverlay.classList.add('open');
+});
+
+addPlaceClose.addEventListener('click', () => addPlaceOverlay.classList.remove('open'));
+addPlaceOverlay.addEventListener('click', (e) => {
+  if(e.target === addPlaceOverlay) addPlaceOverlay.classList.remove('open');
+});
+
+addPlaceSubmit.addEventListener('click', () => {
+  const title = document.getElementById('place-title-input').value.trim() || 'Моё новое место';
+  const country = document.getElementById('place-country-input').value.trim() || 'Добавлено пользователем';
+  const desc = document.getElementById('place-desc-input').value.trim() || 'Пользовательское место.';
+
+  // Мнимое добавление: ставим точку в текущем центре карты.
+  const center = map.getCenter();
+  const id = 'user-' + Date.now();
+
+  const place = {
+    id,
+    name: title,
+    country,
+    lat: center.lat,
+    lng: center.lng,
+    rating: 0,
+    dogFriendly: false,
+    wifi: false,
+    workspace: false,
+    outlet: false,
+    desc,
+    shots: ['https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80']
+  };
+
+  const marker = L.marker([place.lat, place.lng], { icon: makePinIcon(false) }).addTo(map);
+  marker.on('click', () => openPlace(place, marker));
+  markerObjs[place.id] = { marker, place };
+
+  applyFilters();
+  addPlaceOverlay.classList.remove('open');
+  document.getElementById('place-title-input').value = '';
+  document.getElementById('place-country-input').value = '';
+  document.getElementById('place-desc-input').value = '';
+
+  openPlace(place, marker);
+});
+
+document.getElementById('auth-close').addEventListener('click', () => authOverlay.classList.remove('open'));
+authOverlay.addEventListener('click', (e) => { if(e.target === authOverlay) authOverlay.classList.remove('open'); });
+
+authTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    authTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    authMode = tab.dataset.tab;
+    const isRegister = authMode === 'register';
+    authNameRow.style.display = isRegister ? 'block' : 'none';
+    authSubmit.textContent = isRegister ? 'Зарегистрироваться' : 'Войти';
+  });
+});
+
+authSubmit.addEventListener('click', () => {
+  const emailVal = authEmail.value.trim();
+  const nameVal = authName.value.trim();
+  const displayName = (authMode === 'register' && nameVal) ? nameVal : (emailVal.split('@')[0] || 'Гость');
+  accountLabel.textContent = displayName;
+  accountAvatar.textContent = displayName.charAt(0).toUpperCase() || 'Г';
+  loggedIn = true;
+  authOverlay.classList.remove('open');
+});
+
+// ---------- геолокация при входе ----------
+let meMarker = null;
+
+function goToMe(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude, longitude } = pos.coords;
+    if(meMarker) map.removeLayer(meMarker);
+    meMarker = L.marker([latitude, longitude], {
+      icon: L.divIcon({ className:'', html:'<div class="me-dot"></div>', iconSize:[14,14], iconAnchor:[7,7] })
+    }).addTo(map);
+    map.setView([latitude, longitude], 12, { animate: true });
+  }, () => {
+    // отказано в доступе — остаёмся на виде всего мира
+  }, { enableHighAccuracy: true, timeout: 8000 });
+}
+
+document.getElementById('locate-btn').addEventListener('click', goToMe);
+window.addEventListener('load', goToMe);
+</script>
 </body>
 </html>

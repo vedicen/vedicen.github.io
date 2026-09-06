@@ -11,24 +11,46 @@
     --dim:#8c9088;
     --panel:#12140f;
     --panel-edge:#2a2d24;
-    --accent:#c7d94c;
-    --accent-dim:#7c8a2e;
-    --danger:#d9704c;
-    --blue:#4c9fd9;
+    --accent:#93ac52;
+    --accent-dim:#56692c;
+    --danger:#b9793e;
+    --blue:#c79a5d;
+    --bg:#000;
+    --overlay-dark: rgba(18,20,15,0.85);
+    --overlay-field: rgba(255,255,255,0.04);
+    --overlay-field-soft: rgba(255,255,255,0.025);
+    --attribution-bg: rgba(0,0,0,0.55);
+    --shot-bg:#0a0b08;
+  }
+  /* ---------- светлая тема ---------- */
+  body.theme-light{
+    --ink:#23261b;
+    --dim:#6f7364;
+    --panel:#f4f3ec;
+    --panel-edge:#dcdbcd;
+    --accent:#5e7530;
+    --accent-dim:#a9c46a;
+    --bg:#e9ebe1;
+    --overlay-dark: rgba(244,243,236,0.85);
+    --overlay-field: rgba(0,0,0,0.035);
+    --overlay-field-soft: rgba(0,0,0,0.02);
+    --attribution-bg: rgba(255,255,255,0.6);
+    --shot-bg:#dcdbcd;
   }
   *{box-sizing:border-box;}
   html,body{
     margin:0;padding:0;height:100%;width:100%;
     font-family:'Segoe UI',ui-sans-serif,system-ui,sans-serif;
-    background:#000;
+    background:var(--bg);
     overflow:hidden;
+    transition: background-color .25s ease;
   }
   #map{
     position:absolute;top:0;left:0;right:0;bottom:0;
-    background:#000;
+    background:var(--bg);
   }
   .leaflet-control-attribution{
-    background:rgba(0,0,0,0.55)!important;
+    background:var(--attribution-bg)!important;
     color:var(--dim)!important;
     font-size:10px!important;
   }
@@ -37,9 +59,10 @@
     border:none!important;
     margin:16px!important;
     margin-left:356px!important;
+    transition: margin-left 0.3s ease;
   }
   .leaflet-control-zoom a{
-    background:rgba(18,20,15,0.85)!important;
+    background:var(--overlay-dark)!important;
     color:var(--ink)!important;
     border:1px solid var(--panel-edge)!important;
     width:36px!important;height:36px!important;line-height:36px!important;
@@ -52,7 +75,7 @@
     width:16px;height:16px;
     border-radius:50%;
     background:var(--accent);
-    box-shadow:0 0 0 4px rgba(199,217,76,0.22), 0 0 14px rgba(199,217,76,0.5);
+    box-shadow:0 0 0 4px rgba(147,172,82,0.22), 0 0 14px rgba(147,172,82,0.5);
     border:2px solid #0d0f0a;
     cursor:pointer;
     transition:transform .15s ease;
@@ -69,7 +92,7 @@
     box-shadow:0 0 0 6px rgba(76,159,217,0.25);
   }
 
-  /* ---------- левая навигационная панель ---------- */
+  /* ---------- левая панель фильтров ---------- */
   #filters{
     position:absolute;
     top:0;left:0;bottom:0;
@@ -83,22 +106,56 @@
     overflow-y:auto;
     display:flex;
     flex-direction:column;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+  }
+  /* скрытое состояние – уезжает влево */
+  #filters.hidden {
+    transform: translateX(-100%);
   }
 
   #filters h3{
-    display:block;
     margin:0 0 28px;
     padding:0 0 20px;
     border-bottom:1px solid var(--panel-edge);
     font-size:20px;
     font-weight:700;
     color:var(--ink);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .filters-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+  }
+  #site-logo{
+    width:26px;
+    height:auto;
+    display:block;
+    flex-shrink:0;
+    object-fit:contain;
+  }
+  /* кнопка-крестик внутри панели – только для закрытия */
+  #filters-close {
+    background: none;
+    border: none;
+    color: var(--dim);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 6px;
+    transition: color 0.2s;
+  }
+  #filters-close:hover {
+    color: var(--accent);
   }
 
   .filter-section{
     margin-bottom:26px;
   }
-
   .filter-section-title{
     margin:0 0 14px;
     color:var(--dim);
@@ -107,10 +164,8 @@
     letter-spacing:.12em;
     text-transform:uppercase;
   }
-
   .f-row{margin-bottom:22px;}
   .f-row:last-child{margin-bottom:0;}
-
   .f-label{
     display:flex;
     justify-content:space-between;
@@ -118,18 +173,15 @@
     color:var(--ink);
     font-size:15px;
   }
-
   .f-label span.val{
     color:var(--accent);
     font-weight:700;
   }
-
   #rating-range{
     width:100%;
     height:6px;
     accent-color:var(--accent);
   }
-
   .f-check{
     display:flex;
     align-items:center;
@@ -140,9 +192,7 @@
     font-size:15px;
     border-bottom:1px solid rgba(255,255,255,.045);
   }
-
   .f-check:last-child{border-bottom:none;}
-
   .f-check input{
     width:19px;
     height:19px;
@@ -150,7 +200,64 @@
     cursor:pointer;
     flex-shrink:0;
   }
+  .f-check:has(input:disabled){
+    opacity:.45;
+    cursor:not-allowed;
+  }
+  .f-check:has(input:disabled) input{cursor:not-allowed;}
+  input[type="range"]:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+  }
+  .f-hint{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--dim);
+  }
 
+  /* ---------- переключатель тёмная/светлая тема ---------- */
+  .f-switch-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:15px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .switch{
+    position:relative;
+    display:inline-block;
+    width:44px;
+    height:24px;
+    flex-shrink:0;
+  }
+  .switch input{
+    opacity:0;
+    width:0;
+    height:0;
+  }
+  .switch-slider{
+    position:absolute;
+    inset:0;
+    background-color:#3a3d33;
+    transition:.2s;
+    border-radius:24px;
+    cursor:pointer;
+  }
+  .switch-slider:before{
+    position:absolute;
+    content:"";
+    height:18px;width:18px;
+    left:3px;bottom:3px;
+    background-color:#e8e6df;
+    transition:.2s;
+    border-radius:50%;
+  }
+  .switch input:checked + .switch-slider{background-color:var(--accent);}
+  .switch input:checked + .switch-slider:before{
+    transform:translateX(20px);
+    background-color:#12140f;
+  }
   #count-line{
     margin-top:4px;
     padding:15px 0;
@@ -158,8 +265,6 @@
     color:var(--dim);
     font-size:13px;
   }
-
-  /* Кнопки действий находятся в том же сплошном левом меню */
   .sidebar-actions{
     margin-top:auto;
     padding-top:20px;
@@ -168,11 +273,10 @@
     flex-direction:column;
     gap:8px;
   }
-
   .sidebar-action{
     width:100%;
     border:1px solid var(--panel-edge);
-    background:rgba(255,255,255,.025);
+    background:var(--overlay-field-soft);
     color:var(--ink);
     padding:13px 14px;
     border-radius:7px;
@@ -181,32 +285,27 @@
     cursor:pointer;
     transition:.15s ease;
   }
-
   .sidebar-action:hover{
     border-color:var(--accent);
     color:var(--accent);
-    background:rgba(199,217,76,.06);
+    background:rgba(147,172,82,.06);
   }
-
   .sidebar-action.primary{
     background:var(--accent);
     border-color:var(--accent);
     color:#12140f;
     font-weight:700;
   }
-
   .sidebar-action.primary:hover{
-    background:#d6e662;
+    background:#abc670;
     color:#12140f;
   }
-
   #sidebar-account{
     display:flex;
     align-items:center;
     gap:12px;
     padding:10px 2px 16px;
   }
-
   #sidebar-avatar{
     width:34px;
     height:34px;
@@ -220,7 +319,6 @@
     font-weight:700;
     flex-shrink:0;
   }
-
   #sidebar-account-label{
     font-size:14px;
     color:var(--ink);
@@ -229,7 +327,34 @@
     white-space:nowrap;
   }
 
-  /* ---------- боковая панель: сплошная, во весь экран, крупнее ---------- */
+  /* ---------- КНОПКА-ГАМБУРГЕР (всегда видна, когда панель скрыта) ---------- */
+  #menu-toggle {
+    position:fixed;
+    top:100px;
+    left:16px;
+    z-index:1001;
+    background:var(--overlay-dark);
+    border:1px solid var(--panel-edge);
+    color:var(--ink);
+    padding:6px 12px;
+    border-radius:6px;
+    font-size:22px;
+    line-height:1;
+    cursor:pointer;
+    backdrop-filter:blur(4px);
+    display:none; /* по умолчанию скрыта, пока панель открыта */
+    transition: opacity 0.2s;
+  }
+  #menu-toggle:hover {
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  /* когда панель скрыта – показываем гамбургер */
+  body.filters-hidden #menu-toggle {
+    display:block;
+  }
+
+  /* ---------- правая панель (детали места) ---------- */
   #panel{
     position:absolute;
     top:0;right:0;
@@ -263,7 +388,6 @@
   }
   #panel-close:hover{border-color:var(--accent);color:var(--accent);}
 
-  /* --- фейковый аккаунт-бар в шапке панели --- */
   #account-bar{
     position:absolute;
     top:18px;left:18px;
@@ -296,7 +420,7 @@
     position:relative;
     width:100%;
     aspect-ratio:16/9;
-    background:#0a0b08;
+    background:var(--shot-bg);
     flex-shrink:0;
     overflow:hidden;
   }
@@ -344,7 +468,6 @@
   }
   #rating-of{color:var(--dim);font-size:15px;}
 
-  /* --- фейковая пользовательская оценка --- */
   #user-rate-block{
     margin-bottom:22px;
     padding-bottom:22px;
@@ -427,11 +550,13 @@
     color:#c3c6bc;
   }
 
+  /* кнопка "Моё местоположение" */
   #locate-btn{
     position:absolute;
-    bottom:20px;left:356px;
+    bottom:20px;
+    left:356px;
     z-index:900;
-    background:rgba(18,20,15,0.85);
+    background:var(--overlay-dark);
     border:1px solid var(--panel-edge);
     color:var(--ink);
     padding:9px 14px;
@@ -440,11 +565,20 @@
     cursor:pointer;
     display:flex;align-items:center;gap:7px;
     backdrop-filter:blur(4px);
+    transition: left 0.3s ease;
   }
   #locate-btn:hover{border-color:var(--accent);color:var(--accent);}
   #locate-btn .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);}
 
-  /* ---------- фейковая модалка входа/регистрации ---------- */
+  /* когда панель скрыта – отступы сдвигаются влево */
+  body.filters-hidden .leaflet-control-zoom {
+    margin-left: 16px !important;
+  }
+  body.filters-hidden #locate-btn {
+    left: 16px !important;
+  }
+
+  /* ---------- модалки ---------- */
   .modal-overlay{
     position:fixed;
     inset:0;
@@ -454,7 +588,6 @@
     align-items:center;
     justify-content:center;
   }
-
   .modal-overlay.open{display:flex;}
 
   .generic-modal{
@@ -468,26 +601,22 @@
     color:var(--ink);
     box-shadow:0 20px 60px rgba(0,0,0,.5);
   }
-
   .generic-modal h2{
     margin:4px 0 8px;
     font-size:24px;
   }
-
   .generic-modal p{
     margin:0 0 20px;
     color:var(--dim);
     font-size:13px;
     line-height:1.5;
   }
-
   .generic-modal-kicker{
     color:var(--accent);
     font-size:10px;
     font-weight:700;
     letter-spacing:.14em;
   }
-
   .generic-modal-close{
     position:absolute;
     top:13px;
@@ -498,9 +627,7 @@
     font-size:18px;
     cursor:pointer;
   }
-
   .generic-modal-close:hover{color:var(--accent);}
-
   #place-desc-input{
     min-height:90px;
     resize:vertical;
@@ -530,7 +657,7 @@
     display:flex;
     gap:6px;
     margin-bottom:20px;
-    background:rgba(255,255,255,0.04);
+    background:var(--overlay-field);
     border-radius:9px;
     padding:4px;
   }
@@ -553,7 +680,7 @@
     width:100%;
     margin-bottom:12px;
     padding:11px 13px;
-    background:rgba(255,255,255,0.04);
+    background:var(--overlay-field);
     border:1px solid var(--panel-edge);
     border-radius:8px;
     color:var(--ink);
@@ -573,7 +700,7 @@
     font-weight:700;
     cursor:pointer;
   }
-  #auth-submit:hover{background:#d6e662;}
+  #auth-submit:hover{background:#abc670;}
   #auth-close{
     position:absolute;
     top:14px;right:16px;
@@ -591,33 +718,17 @@
   }
 
   @media (max-width:700px){
-    #filters{
-      width:280px;
-      padding:22px 18px 18px;
-    }
-
-    .leaflet-control-zoom{
-      margin-left:296px!important;
-    }
-
-    #locate-btn{
-      left:296px;
-    }
-
+    #filters{width:280px;padding:22px 18px 18px;}
+    .leaflet-control-zoom{margin-left:296px!important;}
+    #locate-btn{left:296px;}
     #panel{width:100vw;max-width:100vw;}
     #panel-body{padding:24px 20px 36px;}
+    #menu-toggle{top:100px;left:12px;font-size:20px;padding:4px 10px;}
   }
-
   @media (max-width:480px){
     #filters{width:250px;}
-
-    .leaflet-control-zoom{
-      margin-left:266px!important;
-    }
-
-    #locate-btn{
-      left:266px;
-    }
+    .leaflet-control-zoom{margin-left:266px!important;}
+    #locate-btn{left:266px;}
   }
 </style>
 </head>
@@ -625,8 +736,31 @@
 
 <div id="map"></div>
 
+<!-- ===== КНОПКА-ГАМБУРГЕР (открывает панель фильтров) ===== -->
+<button id="menu-toggle" aria-label="Открыть фильтры">☰</button>
+
+<!-- ===== ПАНЕЛЬ ФИЛЬТРОВ ===== -->
 <div id="filters">
-  <h3>Фильтры</h3>
+  <h3>
+    <span class="filters-title">
+      <img id="site-logo" src="logo.png" alt="Логотип">
+      <span>Фильтры</span>
+    </span>
+    <button id="filters-close" aria-label="Закрыть панель фильтров">✕</button>
+  </h3>
+
+  <div class="filter-section">
+    <div class="filter-section-title">Оформление</div>
+    <div class="f-row">
+      <label class="f-switch-row" for="theme-toggle">
+        <span>Тёмная тема</span>
+        <span class="switch">
+          <input type="checkbox" id="theme-toggle" checked>
+          <span class="switch-slider"></span>
+        </span>
+      </label>
+    </div>
+  </div>
 
   <div class="filter-section">
     <div class="filter-section-title">Рейтинг</div>
@@ -648,6 +782,24 @@
     </div>
   </div>
 
+  <div class="filter-section">
+    <div class="filter-section-title">Расстояние</div>
+    <div class="f-row" id="distance-row">
+      <label class="f-check">
+        <input type="checkbox" id="f-distance" disabled>
+        <span>Только рядом со мной</span>
+      </label>
+      <div id="distance-slider-wrap" style="display:none;">
+        <div class="f-label">
+          <span>Радиус поиска</span>
+          <span class="val" id="distance-val">50 км</span>
+        </div>
+        <input type="range" id="distance-range" min="1" max="500" step="1" value="50" disabled>
+      </div>
+      <div class="f-hint" id="distance-hint">местоположение не определено</div>
+    </div>
+  </div>
+
   <div id="count-line">Показано мест: <span id="count-num">0</span></div>
 
   <div class="sidebar-actions">
@@ -655,14 +807,15 @@
       <div id="sidebar-avatar">Г</div>
       <div id="sidebar-account-label">Вы не вошли</div>
     </div>
-
     <button class="sidebar-action primary" id="add-place-btn">＋ Добавить своё место</button>
     <button class="sidebar-action" id="login-btn">Войти в аккаунт</button>
   </div>
 </div>
 
+<!-- кнопка "Моё местоположение" -->
 <button id="locate-btn"><span class="dot"></span> Моё местоположение</button>
 
+<!-- ===== ПРАВАЯ ПАНЕЛЬ (детали) ===== -->
 <div id="panel">
   <button id="panel-close">✕</button>
   <div id="shot-wrap">
@@ -693,6 +846,7 @@
   </div>
 </div>
 
+<!-- ===== МОДАЛКА ДОБАВЛЕНИЯ МЕСТА ===== -->
 <div id="add-place-overlay" class="modal-overlay">
   <div id="add-place-modal" class="generic-modal">
     <button class="generic-modal-close" id="add-place-close">✕</button>
@@ -706,6 +860,7 @@
   </div>
 </div>
 
+<!-- ===== МОДАЛКА АВТОРИЗАЦИИ ===== -->
 <div id="auth-overlay">
   <div id="auth-modal">
     <button id="auth-close">✕</button>
@@ -723,311 +878,428 @@
   </div>
 </div>
 
+<!-- ===== СКРИПТЫ ===== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="locations.js"></script>
 <script>
-const map = L.map('map', {
-  center: [20, 0],
-  zoom: 3,
-  minZoom: 2,
-  maxZoom: 18,
-  zoomControl: true,
-  worldCopyJump: true,
-  tap: true
-});
+  (function() {
+    "use strict";
 
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles © Esri',
-  maxZoom: 18
-}).addTo(map);
-// мультитач pinch-zoom работает из коробки на touch-устройствах
-
-let activeMarker = null;
-let activePlaceId = null;
-const markerObjs = {};
-const userRatings = {}; // id -> число звёзд, только визуально, в пределах сессии
-
-function makePinIcon(active){
-  return L.divIcon({
-    className: '',
-    html: `<div class="pin${active ? ' active' : ''}"></div>`,
-    iconSize: [16,16],
-    iconAnchor: [8,8]
-  });
-}
-
-LOCATIONS.forEach(place => {
-  const marker = L.marker([place.lat, place.lng], { icon: makePinIcon(false) }).addTo(map);
-  marker.on('click', () => openPlace(place, marker));
-  markerObjs[place.id] = { marker, place };
-});
-
-// ---------- фильтры ----------
-const ratingRange = document.getElementById('rating-range');
-const ratingVal = document.getElementById('rating-val');
-const fDog = document.getElementById('f-dog');
-const fWifi = document.getElementById('f-wifi');
-const fWork = document.getElementById('f-work');
-const countNum = document.getElementById('count-num');
-
-function applyFilters(){
-  const minRating = parseFloat(ratingRange.value);
-  ratingVal.textContent = minRating.toFixed(1);
-  const needDog = fDog.checked;
-  const needWifi = fWifi.checked;
-  const needWork = fWork.checked;
-
-  let shown = 0;
-  Object.values(markerObjs).forEach(({marker, place}) => {
-    const ok =
-      place.rating >= minRating &&
-      (!needDog || place.dogFriendly) &&
-      (!needWifi || place.wifi) &&
-      (!needWork || place.workspace);
-
-    if(ok){
-      if(!map.hasLayer(marker)) marker.addTo(map);
-      shown++;
-    } else {
-      if(map.hasLayer(marker)) map.removeLayer(marker);
-      if(activeMarker === marker) closePanel();
-    }
-  });
-  countNum.textContent = shown;
-}
-
-[ratingRange, fDog, fWifi, fWork].forEach(el => el.addEventListener('input', applyFilters));
-applyFilters();
-
-// ---------- боковая панель ----------
-const panel = document.getElementById('panel');
-const panelClose = document.getElementById('panel-close');
-const shotImg = document.getElementById('shot-img');
-const shotDots = document.getElementById('shot-dots');
-let currentShots = [];
-let currentShotIdx = 0;
-
-function renderShot(){
-  shotImg.src = currentShots[currentShotIdx];
-  [...shotDots.children].forEach((d,i) => d.classList.toggle('on', i===currentShotIdx));
-}
-
-const ICONS = {
-  dogYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14c0-3 2-5 4-5s3 1 3 3-1 3-3 3H6"/><path d="M20 10c0 6-4 10-8 10s-6-3-6-6"/><circle cx="17" cy="7" r="2"/></svg>',
-  dogNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>',
-  wifiYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg>',
-  wifiNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/><path d="M3 3l18 18"/></svg>',
-  workYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
-  workNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 3l18 18"/></svg>'
-};
-
-function traitRow(iconYes, iconNo, label, value, valText, withStar, outlet){
-  const star = withStar
-    ? `<button class="star-btn" data-outlet="${outlet}" title="Подробнее">★</button>`
-    : '';
-  return `<li class="trait ${value ? 'yes' : 'no'}">
-    <span class="trait-icon">${value ? iconYes : iconNo}</span>
-    <span class="trait-label">${label}${star}</span>
-    <span class="trait-val">${valText}</span>
-  </li>`;
-}
-
-// ---------- фейковая пользовательская оценка места ----------
-const userStars = [...document.querySelectorAll('.u-star')];
-const userRateNote = document.getElementById('user-rate-note');
-
-function renderUserStars(){
-  const val = userRatings[activePlaceId] || 0;
-  userStars.forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= val));
-  userRateNote.textContent = val
-    ? `вы поставили ${val} из 5 — оценка видна только вам`
-    : 'оценка видна только вам';
-}
-
-userStars.forEach(s => {
-  s.addEventListener('click', () => {
-    if(activePlaceId === null) return;
-    userRatings[activePlaceId] = parseInt(s.dataset.v);
-    renderUserStars();
-  });
-  s.addEventListener('mouseenter', () => {
-    const v = parseInt(s.dataset.v);
-    userStars.forEach(x => x.classList.toggle('on', parseInt(x.dataset.v) <= v));
-  });
-});
-document.getElementById('user-stars').addEventListener('mouseleave', renderUserStars);
-
-function openPlace(place, marker){
-  if(activeMarker) activeMarker.setIcon(makePinIcon(false));
-  marker.setIcon(makePinIcon(true));
-  activeMarker = marker;
-  activePlaceId = place.id;
-
-  document.getElementById('place-name').textContent = place.name;
-  document.getElementById('place-loc').textContent = place.country;
-  document.getElementById('rating-num').textContent = place.rating.toFixed(1);
-  document.getElementById('desc').textContent = place.desc;
-  renderUserStars();
-
-  document.getElementById('trait-list').innerHTML =
-    traitRow(ICONS.dogYes, ICONS.dogNo, 'Можно с собакой', place.dogFriendly, place.dogFriendly ? 'да' : 'нет', false) +
-    traitRow(ICONS.wifiYes, ICONS.wifiNo, 'Wi-Fi', place.wifi, place.wifi ? 'есть' : 'нет', false) +
-    traitRow(ICONS.workYes, ICONS.workNo, 'Рабочая зона', place.workspace, place.workspace ? 'есть' : 'нет', true, place.outlet);
-
-  const starBtn = document.querySelector('#trait-list .star-btn');
-  if(starBtn){
-    starBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const existing = document.querySelector('.star-popup');
-      if(existing){ existing.remove(); return; }
-      const outlet = starBtn.dataset.outlet === 'true';
-      const pop = document.createElement('div');
-      pop.className = 'star-popup';
-      pop.textContent = outlet ? 'присутствует розетка' : 'розетки нет';
-      starBtn.closest('.trait').appendChild(pop);
-      setTimeout(() => {
-        document.addEventListener('click', function onDoc(ev){
-          if(!pop.contains(ev.target) && ev.target !== starBtn){
-            pop.remove();
-            document.removeEventListener('click', onDoc);
-          }
-        });
-      }, 0);
+    // --- карта ---
+    const map = L.map('map', {
+      center: [20, 0],
+      zoom: 3,
+      minZoom: 2,
+      maxZoom: 18,
+      zoomControl: true,
+      worldCopyJump: true,
+      tap: true
     });
-  }
 
-  currentShots = place.shots;
-  currentShotIdx = 0;
-  shotDots.innerHTML = currentShots.map(() => `<span></span>`).join('');
-  [...shotDots.children].forEach((d,i) => d.addEventListener('click', () => { currentShotIdx = i; renderShot(); }));
-  renderShot();
-
-  panel.classList.add('open');
-  map.panTo([place.lat, place.lng], { animate: true });
-}
-
-function closePanel(){
-  panel.classList.remove('open');
-  if(activeMarker){ activeMarker.setIcon(makePinIcon(false)); activeMarker = null; }
-  activePlaceId = null;
-}
-panelClose.addEventListener('click', closePanel);
-
-// ---------- фейковая регистрация / вход ----------
-const authOverlay = document.getElementById('auth-overlay');
-const accountBar = document.getElementById('sidebar-account');
-const accountAvatar = document.getElementById('sidebar-avatar');
-const accountLabel = document.getElementById('sidebar-account-label');
-const loginBtn = document.getElementById('login-btn');
-const addPlaceBtn = document.getElementById('add-place-btn');
-const authTabs = [...document.querySelectorAll('.auth-tab')];
-const authNameRow = document.getElementById('auth-name-row');
-const authSubmit = document.getElementById('auth-submit');
-const authEmail = document.getElementById('auth-email');
-const authName = document.getElementById('auth-name');
-let authMode = 'login';
-let loggedIn = false;
-
-function openAuth(){
-  if(loggedIn) return;
-  authOverlay.classList.add('open');
-}
-
-accountBar.addEventListener('click', openAuth);
-loginBtn.addEventListener('click', openAuth);
-const addPlaceOverlay = document.getElementById('add-place-overlay');
-const addPlaceClose = document.getElementById('add-place-close');
-const addPlaceSubmit = document.getElementById('add-place-submit');
-
-addPlaceBtn.addEventListener('click', () => {
-  addPlaceOverlay.classList.add('open');
-});
-
-addPlaceClose.addEventListener('click', () => addPlaceOverlay.classList.remove('open'));
-addPlaceOverlay.addEventListener('click', (e) => {
-  if(e.target === addPlaceOverlay) addPlaceOverlay.classList.remove('open');
-});
-
-addPlaceSubmit.addEventListener('click', () => {
-  const title = document.getElementById('place-title-input').value.trim() || 'Моё новое место';
-  const country = document.getElementById('place-country-input').value.trim() || 'Добавлено пользователем';
-  const desc = document.getElementById('place-desc-input').value.trim() || 'Пользовательское место.';
-
-  // Мнимое добавление: ставим точку в текущем центре карты.
-  const center = map.getCenter();
-  const id = 'user-' + Date.now();
-
-  const place = {
-    id,
-    name: title,
-    country,
-    lat: center.lat,
-    lng: center.lng,
-    rating: 0,
-    dogFriendly: false,
-    wifi: false,
-    workspace: false,
-    outlet: false,
-    desc,
-    shots: ['https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80']
-  };
-
-  const marker = L.marker([place.lat, place.lng], { icon: makePinIcon(false) }).addTo(map);
-  marker.on('click', () => openPlace(place, marker));
-  markerObjs[place.id] = { marker, place };
-
-  applyFilters();
-  addPlaceOverlay.classList.remove('open');
-  document.getElementById('place-title-input').value = '';
-  document.getElementById('place-country-input').value = '';
-  document.getElementById('place-desc-input').value = '';
-
-  openPlace(place, marker);
-});
-
-document.getElementById('auth-close').addEventListener('click', () => authOverlay.classList.remove('open'));
-authOverlay.addEventListener('click', (e) => { if(e.target === authOverlay) authOverlay.classList.remove('open'); });
-
-authTabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    authTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    authMode = tab.dataset.tab;
-    const isRegister = authMode === 'register';
-    authNameRow.style.display = isRegister ? 'block' : 'none';
-    authSubmit.textContent = isRegister ? 'Зарегистрироваться' : 'Войти';
-  });
-});
-
-authSubmit.addEventListener('click', () => {
-  const emailVal = authEmail.value.trim();
-  const nameVal = authName.value.trim();
-  const displayName = (authMode === 'register' && nameVal) ? nameVal : (emailVal.split('@')[0] || 'Гость');
-  accountLabel.textContent = displayName;
-  accountAvatar.textContent = displayName.charAt(0).toUpperCase() || 'Г';
-  loggedIn = true;
-  authOverlay.classList.remove('open');
-});
-
-// ---------- геолокация при входе ----------
-let meMarker = null;
-
-function goToMe(){
-  if(!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude, longitude } = pos.coords;
-    if(meMarker) map.removeLayer(meMarker);
-    meMarker = L.marker([latitude, longitude], {
-      icon: L.divIcon({ className:'', html:'<div class="me-dot"></div>', iconSize:[14,14], iconAnchor:[7,7] })
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri',
+      maxZoom: 18
     }).addTo(map);
-    map.setView([latitude, longitude], 12, { animate: true });
-  }, () => {
-    // отказано в доступе — остаёмся на виде всего мира
-  }, { enableHighAccuracy: true, timeout: 8000 });
-}
 
-document.getElementById('locate-btn').addEventListener('click', goToMe);
-window.addEventListener('load', goToMe);
+    let activeMarker = null;
+    let activePlaceId = null;
+    const markerObjs = {};
+    const userRatings = {};
+
+    function makePinIcon(active) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="pin${active ? ' active' : ''}"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+    }
+
+    if (typeof LOCATIONS !== 'undefined') {
+      LOCATIONS.forEach(place => {
+        const marker = L.marker([place.lat, place.lng], { icon: makePinIcon(false) }).addTo(map);
+        marker.on('click', () => openPlace(place, marker));
+        markerObjs[place.id] = { marker, place };
+      });
+    }
+
+    // --- фильтры ---
+    const ratingRange = document.getElementById('rating-range');
+    const ratingVal = document.getElementById('rating-val');
+    const fDog = document.getElementById('f-dog');
+    const fWifi = document.getElementById('f-wifi');
+    const fWork = document.getElementById('f-work');
+    const countNum = document.getElementById('count-num');
+
+    // --- фильтр по расстоянию ---
+    const fDistance = document.getElementById('f-distance');
+    const distanceRange = document.getElementById('distance-range');
+    const distanceVal = document.getElementById('distance-val');
+    const distanceHint = document.getElementById('distance-hint');
+    const distanceSliderWrap = document.getElementById('distance-slider-wrap');
+    let userLat = null, userLng = null;
+
+    function toRad(deg) { return deg * Math.PI / 180; }
+    function haversineKm(lat1, lng1, lat2, lng2) {
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    function enableDistanceFilter(lat, lng) {
+      userLat = lat;
+      userLng = lng;
+      fDistance.disabled = false;
+      distanceHint.textContent = 'местоположение определено';
+      if (fDistance.checked) {
+        distanceSliderWrap.style.display = 'block';
+        distanceRange.disabled = false;
+      }
+      applyFilters();
+    }
+
+    function distanceUnavailable() {
+      distanceHint.textContent = 'не удалось определить местоположение';
+    }
+
+    fDistance.addEventListener('change', () => {
+      if (userLat === null) { fDistance.checked = false; return; }
+      distanceSliderWrap.style.display = fDistance.checked ? 'block' : 'none';
+      distanceRange.disabled = !fDistance.checked;
+      applyFilters();
+    });
+    distanceRange.addEventListener('input', () => {
+      distanceVal.textContent = distanceRange.value + ' км';
+      applyFilters();
+    });
+
+    function applyFilters() {
+      const minRating = parseFloat(ratingRange.value);
+      ratingVal.textContent = minRating.toFixed(1);
+      const needDog = fDog.checked;
+      const needWifi = fWifi.checked;
+      const needWork = fWork.checked;
+      const useDistance = !fDistance.disabled && fDistance.checked && userLat !== null;
+      const maxDist = parseFloat(distanceRange.value);
+
+      let shown = 0;
+      Object.values(markerObjs).forEach(({ marker, place }) => {
+        const ok =
+          place.rating >= minRating &&
+          (!needDog || place.dogFriendly) &&
+          (!needWifi || place.wifi) &&
+          (!needWork || place.workspace) &&
+          (!useDistance || haversineKm(userLat, userLng, place.lat, place.lng) <= maxDist);
+
+        if (ok) {
+          if (!map.hasLayer(marker)) marker.addTo(map);
+          shown++;
+        } else {
+          if (map.hasLayer(marker)) map.removeLayer(marker);
+          if (activeMarker === marker) closePanel();
+        }
+      });
+      countNum.textContent = shown;
+    }
+
+    [ratingRange, fDog, fWifi, fWork].forEach(el => el.addEventListener('input', applyFilters));
+    applyFilters();
+
+    // --- правая панель ---
+    const panel = document.getElementById('panel');
+    const panelClose = document.getElementById('panel-close');
+    const shotImg = document.getElementById('shot-img');
+    const shotDots = document.getElementById('shot-dots');
+    let currentShots = [];
+    let currentShotIdx = 0;
+
+    function renderShot() {
+      shotImg.src = currentShots[currentShotIdx];
+      [...shotDots.children].forEach((d, i) => d.classList.toggle('on', i === currentShotIdx));
+    }
+
+    const ICONS = {
+      dogYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14c0-3 2-5 4-5s3 1 3 3-1 3-3 3H6"/><path d="M20 10c0 6-4 10-8 10s-6-3-6-6"/><circle cx="17" cy="7" r="2"/></svg>',
+      dogNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>',
+      wifiYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg>',
+      wifiNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/><path d="M3 3l18 18"/></svg>',
+      workYes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+      workNo: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 3l18 18"/></svg>'
+    };
+
+    function traitRow(iconYes, iconNo, label, value, valText, withStar, outlet) {
+      const star = withStar ?
+        `<button class="star-btn" data-outlet="${outlet}" title="Подробнее">★</button>` :
+        '';
+      return `<li class="trait ${value ? 'yes' : 'no'}">
+        <span class="trait-icon">${value ? iconYes : iconNo}</span>
+        <span class="trait-label">${label}${star}</span>
+        <span class="trait-val">${valText}</span>
+      </li>`;
+    }
+
+    const userStars = [...document.querySelectorAll('.u-star')];
+    const userRateNote = document.getElementById('user-rate-note');
+
+    function renderUserStars() {
+      const val = userRatings[activePlaceId] || 0;
+      userStars.forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= val));
+      userRateNote.textContent = val ?
+        `вы поставили ${val} из 5 — оценка видна только вам` :
+        'оценка видна только вам';
+    }
+
+    userStars.forEach(s => {
+      s.addEventListener('click', () => {
+        if (activePlaceId === null) return;
+        userRatings[activePlaceId] = parseInt(s.dataset.v);
+        renderUserStars();
+      });
+      s.addEventListener('mouseenter', () => {
+        const v = parseInt(s.dataset.v);
+        userStars.forEach(x => x.classList.toggle('on', parseInt(x.dataset.v) <= v));
+      });
+    });
+    document.getElementById('user-stars').addEventListener('mouseleave', renderUserStars);
+
+    function openPlace(place, marker) {
+      if (activeMarker) activeMarker.setIcon(makePinIcon(false));
+      marker.setIcon(makePinIcon(true));
+      activeMarker = marker;
+      activePlaceId = place.id;
+
+      document.getElementById('place-name').textContent = place.name;
+      document.getElementById('place-loc').textContent = place.country;
+      document.getElementById('rating-num').textContent = place.rating.toFixed(1);
+      document.getElementById('desc').textContent = place.desc;
+      renderUserStars();
+
+      document.getElementById('trait-list').innerHTML =
+        traitRow(ICONS.dogYes, ICONS.dogNo, 'Можно с собакой', place.dogFriendly, place.dogFriendly ? 'да' : 'нет', false) +
+        traitRow(ICONS.wifiYes, ICONS.wifiNo, 'Wi-Fi', place.wifi, place.wifi ? 'есть' : 'нет', false) +
+        traitRow(ICONS.workYes, ICONS.workNo, 'Рабочая зона', place.workspace, place.workspace ? 'есть' : 'нет', true, place.outlet);
+
+      const starBtn = document.querySelector('#trait-list .star-btn');
+      if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const existing = document.querySelector('.star-popup');
+          if (existing) { existing.remove(); return; }
+          const outlet = starBtn.dataset.outlet === 'true';
+          const pop = document.createElement('div');
+          pop.className = 'star-popup';
+          pop.textContent = outlet ? 'присутствует розетка' : 'розетки нет';
+          starBtn.closest('.trait').appendChild(pop);
+          setTimeout(() => {
+            document.addEventListener('click', function onDoc(ev) {
+              if (!pop.contains(ev.target) && ev.target !== starBtn) {
+                pop.remove();
+                document.removeEventListener('click', onDoc);
+              }
+            });
+          }, 0);
+        });
+      }
+
+      currentShots = place.shots;
+      currentShotIdx = 0;
+      shotDots.innerHTML = currentShots.map(() => `<span></span>`).join('');
+      [...shotDots.children].forEach((d, i) => d.addEventListener('click', () => { currentShotIdx = i; renderShot(); }));
+      renderShot();
+
+      panel.classList.add('open');
+      map.panTo([place.lat, place.lng], { animate: true });
+    }
+
+    function closePanel() {
+      panel.classList.remove('open');
+      if (activeMarker) { activeMarker.setIcon(makePinIcon(false)); activeMarker = null; }
+      activePlaceId = null;
+    }
+    panelClose.addEventListener('click', closePanel);
+
+    // --- авторизация (демо) ---
+    const authOverlay = document.getElementById('auth-overlay');
+    const accountBar = document.getElementById('sidebar-account');
+    const accountAvatar = document.getElementById('sidebar-avatar');
+    const accountLabel = document.getElementById('sidebar-account-label');
+    const loginBtn = document.getElementById('login-btn');
+    const addPlaceBtn = document.getElementById('add-place-btn');
+    const authTabs = [...document.querySelectorAll('.auth-tab')];
+    const authNameRow = document.getElementById('auth-name-row');
+    const authSubmit = document.getElementById('auth-submit');
+    const authEmail = document.getElementById('auth-email');
+    const authName = document.getElementById('auth-name');
+    let authMode = 'login';
+    let loggedIn = false;
+
+    function openAuth() {
+      if (loggedIn) return;
+      authOverlay.classList.add('open');
+    }
+
+    accountBar.addEventListener('click', openAuth);
+    loginBtn.addEventListener('click', openAuth);
+
+    const addPlaceOverlay = document.getElementById('add-place-overlay');
+    const addPlaceClose = document.getElementById('add-place-close');
+    const addPlaceSubmit = document.getElementById('add-place-submit');
+
+    addPlaceBtn.addEventListener('click', () => {
+      addPlaceOverlay.classList.add('open');
+    });
+    addPlaceClose.addEventListener('click', () => addPlaceOverlay.classList.remove('open'));
+    addPlaceOverlay.addEventListener('click', (e) => {
+      if (e.target === addPlaceOverlay) addPlaceOverlay.classList.remove('open');
+    });
+
+    addPlaceSubmit.addEventListener('click', () => {
+      const title = document.getElementById('place-title-input').value.trim() || 'Моё новое место';
+      const country = document.getElementById('place-country-input').value.trim() || 'Добавлено пользователем';
+      const desc = document.getElementById('place-desc-input').value.trim() || 'Пользовательское место.';
+
+      const center = map.getCenter();
+      const id = 'user-' + Date.now();
+
+      const place = {
+        id,
+        name: title,
+        country,
+        lat: center.lat,
+        lng: center.lng,
+        rating: 0,
+        dogFriendly: false,
+        wifi: false,
+        workspace: false,
+        outlet: false,
+        desc,
+        shots: ['https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80']
+      };
+
+      const marker = L.marker([place.lat, place.lng], { icon: makePinIcon(false) }).addTo(map);
+      marker.on('click', () => openPlace(place, marker));
+      markerObjs[place.id] = { marker, place };
+
+      applyFilters();
+      addPlaceOverlay.classList.remove('open');
+      document.getElementById('place-title-input').value = '';
+      document.getElementById('place-country-input').value = '';
+      document.getElementById('place-desc-input').value = '';
+
+      openPlace(place, marker);
+    });
+
+    document.getElementById('auth-close').addEventListener('click', () => authOverlay.classList.remove('open'));
+    authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) authOverlay.classList.remove('open'); });
+
+    authTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        authTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        authMode = tab.dataset.tab;
+        const isRegister = authMode === 'register';
+        authNameRow.style.display = isRegister ? 'block' : 'none';
+        authSubmit.textContent = isRegister ? 'Зарегистрироваться' : 'Войти';
+      });
+    });
+
+    authSubmit.addEventListener('click', () => {
+      const emailVal = authEmail.value.trim();
+      const nameVal = authName.value.trim();
+      const displayName = (authMode === 'register' && nameVal) ? nameVal : (emailVal.split('@')[0] || 'Гость');
+      accountLabel.textContent = displayName;
+      accountAvatar.textContent = displayName.charAt(0).toUpperCase() || 'Г';
+      loggedIn = true;
+      authOverlay.classList.remove('open');
+    });
+
+    // --- геолокация ---
+    let meMarker = null;
+
+    function goToMe() {
+      if (!navigator.geolocation) { distanceUnavailable(); return; }
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        if (meMarker) map.removeLayer(meMarker);
+        meMarker = L.marker([latitude, longitude], {
+          icon: L.divIcon({ className: '', html: '<div class="me-dot"></div>', iconSize: [14, 14], iconAnchor: [7, 7] })
+        }).addTo(map);
+        map.setView([latitude, longitude], 12, { animate: true });
+        enableDistanceFilter(latitude, longitude);
+      }, () => { distanceUnavailable(); }, { enableHighAccuracy: true, timeout: 8000 });
+    }
+
+    document.getElementById('locate-btn').addEventListener('click', goToMe);
+    window.addEventListener('load', goToMe);
+
+    // ============================================================
+    // ★★★ УПРАВЛЕНИЕ ПАНЕЛЬЮ ФИЛЬТРОВ (гамбургер / крестик) ★★★
+    // ============================================================
+    const filtersEl = document.getElementById('filters');
+    const filtersClose = document.getElementById('filters-close');
+    const menuToggle = document.getElementById('menu-toggle');
+    let filtersHidden = false; // true – панель скрыта, false – открыта
+
+    // ============================================================
+    // ★★★ ПЕРЕКЛЮЧАТЕЛЬ СВЕТЛОЙ/ТЁМНОЙ ТЕМЫ ★★★
+    // ============================================================
+    const themeToggle = document.getElementById('theme-toggle');
+
+    function applyTheme(isDark) {
+      document.body.classList.toggle('theme-light', !isDark);
+    }
+
+    let savedTheme = null;
+    try { savedTheme = localStorage.getItem('mapThemeDark'); } catch (e) { }
+    const initialDark = savedTheme === null ? true : savedTheme === 'true'; // по умолчанию тёмная
+    themeToggle.checked = initialDark;
+    applyTheme(initialDark);
+
+    themeToggle.addEventListener('change', () => {
+      applyTheme(themeToggle.checked);
+      try { localStorage.setItem('mapThemeDark', themeToggle.checked); } catch (e) { }
+    });
+
+    // Функция открытия панели
+    function openFilters() {
+      filtersEl.classList.remove('hidden');
+      document.body.classList.remove('filters-hidden');
+      filtersHidden = false;
+      // гамбургер скрывается, крестик в панели виден (он внутри)
+    }
+
+    // Функция закрытия панели
+    function closeFilters() {
+      filtersEl.classList.add('hidden');
+      document.body.classList.add('filters-hidden');
+      filtersHidden = true;
+    }
+
+    // Обработчик на крестик внутри панели – закрываем
+    filtersClose.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeFilters();
+    });
+
+    // Обработчик на гамбургер – открываем
+    menuToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      openFilters();
+    });
+
+    // При загрузке панель открыта, гамбургер скрыт (по CSS)
+    // Убедимся, что классы заданы правильно
+    // (изначально панель открыта, значит .hidden нет, body без .filters-hidden)
+    // Всё уже по умолчанию так.
+
+    // Дополнительно: если случайно панель закрыта при загрузке, откроем
+    // (но по умолчанию она открыта)
+
+    console.log('Готово. Панель фильтров управляется через гамбургер (☰) и крестик (✕).');
+  })();
 </script>
 </body>
 </html>
